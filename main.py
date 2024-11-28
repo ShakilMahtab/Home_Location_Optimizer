@@ -5,7 +5,7 @@ import numpy as np
 from streamlit_folium import st_folium
 from utils.data_fetcher import OSMDataFetcher
 from utils.scoring import LocationScorer
-from utils.map_utils import create_base_map, add_amenities_to_map
+from utils.map_utils import create_base_map, add_amenities_to_map, add_ranked_location
 from geopy.geocoders import Nominatim
 
 # Initialize services
