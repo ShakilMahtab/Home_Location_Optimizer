@@ -1,0 +1,23 @@
+.location-score {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: #f8f9fa;
+    margin: 1rem 0;
+}
+
+.filter-section {
+    padding: 1rem;
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.results-container {
+    margin-top: 2rem;
+}
+
+.map-container {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    margin: 1rem 0;
+}

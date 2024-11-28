@@ -1,0 +1,15 @@
+[project]
+name = "repl-nix-smartlocator"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "altair",
+    "branca>=0.8.0",
+    "folium>=0.18.0",
+    "geopy>=2.4.1",
+    "pandas",
+    "requests",
+    "streamlit-folium>=0.23.2",
+    "streamlit>=1.24.0",
+]
