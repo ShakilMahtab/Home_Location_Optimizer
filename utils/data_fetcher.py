@@ -23,7 +23,7 @@ class OSMDataFetcher:
         amenities = {
             'transport': ['bus_station', 'subway_entrance', 'train_station'],
             'family': ['school', 'playground'],
-            'services': ['hospital', 'shopping_mall'],
+            'services': ['hospital', 'shopping_mall', 'supermarket'],
             'nature': ['water']
         }
         
