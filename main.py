@@ -1,6 +1,8 @@
 import streamlit as st
 import folium
 from streamlit_folium import folium_static
+import numpy as np
+from streamlit_folium import st_folium
 from utils.data_fetcher import OSMDataFetcher
 from utils.scoring import LocationScorer
 from utils.map_utils import create_base_map, add_amenities_to_map
@@ -62,32 +64,48 @@ with col1:
                 radius=int(radius)
             )
             
-            # Create map
+            # Generate potential locations in a grid
+            grid_size = 10
+            lat_step = radius / 111000  # Convert meters to approx. degrees
+            lon_step = radius / (111000 * np.cos(np.radians(center_lat)))
+            
+            potential_locations = []
+            for i in range(-grid_size, grid_size + 1):
+                for j in range(-grid_size, grid_size + 1):
+                    lat = center_lat + (i * lat_step)
+                    lon = center_lon + (j * lon_step)
+                    potential_locations.append((lat, lon))
+            
+            # Score all locations
+            location_scores = []
+            for loc in potential_locations:
+                score_info = scorer.score_location(loc, amenities)
+                location_scores.append((loc, score_info))
+            
+            # Sort locations by total score
+            location_scores.sort(key=lambda x: (-x[1]['total_score'], x[1]['combined_distance']))
+            
+            # Create map with top 5 locations
             m = create_base_map((center_lat, center_lon))
             m = add_amenities_to_map(m, amenities)
             
-            # Calculate score
-            score_result = scorer.score_location(
-                (center_lat, center_lon),
-                amenities
-            )
+            # Add ranked markers for top 5 locations
+            top_locations = location_scores[:5]
+            for rank, (location, score_info) in enumerate(top_locations, 1):
+                add_ranked_location(m, location, rank, score_info)
             
             # Display map
-            folium_static(m)
+            st_folium(m, width=800)
             
             # Display scores
             with col2:
-                st.subheader("Location Score")
+                st.subheader("Top 5 Locations")
                 
-                # Total score
-                st.metric(
-                    "Overall Score",
-                    f"{score_result['total_score']:.2f}/1.00"
-                )
-                
-                # Detailed breakdown
-                st.subheader("Nearby Amenities")
-                for category, locations in amenities.items():
-                    st.write(f"{category.title()}: {len(locations)} found")
+                for rank, (location, score_info) in enumerate(top_locations, 1):
+                    with st.expander(f"Rank #{rank} - Score: {score_info['total_score']:.2f}"):
+                        st.write("Distances to amenities:")
+                        for category, distance in score_info['distances'].items():
+                            st.write(f"{category.title()}: {distance:.2f}km")
+                        st.write(f"Combined distance: {score_info['combined_distance']:.2f}km")
     else:
         st.info("Enter a location to begin your search")

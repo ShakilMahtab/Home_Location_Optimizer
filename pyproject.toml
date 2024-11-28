@@ -8,6 +8,7 @@ dependencies = [
     "branca>=0.8.0",
     "folium>=0.18.0",
     "geopy>=2.4.1",
+    "numpy>=2.1.3",
     "pandas",
     "requests",
     "streamlit-folium>=0.23.2",

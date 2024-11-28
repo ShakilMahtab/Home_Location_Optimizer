@@ -10,6 +10,28 @@ def create_base_map(location: Tuple[float, float]) -> folium.Map:
         tiles='cartodbpositron'
     )
 
+def add_ranked_location(m: folium.Map, location: Tuple[float, float], 
+                       rank: int, score_info: Dict) -> None:
+    """Add a ranked location marker to the map"""
+    popup_html = f"""
+    <div style='min-width: 200px'>
+        <b>Rank #{rank}</b><br>
+        Score: {score_info['total_score']:.2f}<br>
+        <b>Distances:</b><br>
+        {'<br>'.join(f"{cat.title()}: {dist:.2f}km" 
+                     for cat, dist in score_info['distances'].items())}
+    </div>
+    """
+    
+    folium.Marker(
+        location,
+        popup=popup_html,
+        icon=folium.DivIcon(
+            html=f'<div style="font-size: 14px; background-color: white; '
+                 f'border: 2px solid red; border-radius: 50%; padding: 2px 8px;">{rank}</div>'
+        )
+    ).add_to(m)
+
 def add_amenities_to_map(m: folium.Map, 
                         amenities: Dict[str, List[Tuple[float, float]]]) -> folium.Map:
     """Add amenity markers to map"""
