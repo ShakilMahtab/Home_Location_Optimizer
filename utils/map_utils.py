@@ -25,7 +25,10 @@ def add_ranked_location(m: folium.Map, location: Tuple[float, float],
                         f"Transport ({transport_type.replace('_', ' ').title()}): {dist:.2f}km"
                     )
             else:
-                distances_text.append(f"{amenity.replace('_', ' ').title()}: {dist:.2f}km")
+                if dist is None:
+                    distances_text.append(f"{amenity.replace('_', ' ').title()}: Not found")
+                else:
+                    distances_text.append(f"{amenity.replace('_', ' ').title()}: {dist:.2f}km")
     
     popup_html = f"""
     <div style='min-width: 200px'>
