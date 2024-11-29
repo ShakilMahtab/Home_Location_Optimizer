@@ -13,13 +13,26 @@ def create_base_map(location: Tuple[float, float]) -> folium.Map:
 def add_ranked_location(m: folium.Map, location: Tuple[float, float], 
                        rank: int, score_info: Dict) -> None:
     """Add a ranked location marker to the map"""
+    distances_text = []
+    for amenity, dist in score_info['distances'].items():
+        if dist == float('inf'):
+            distances_text.append(f"{amenity.replace('_', ' ').title()}: Not found")
+        else:
+            if amenity == 'transport':
+                transport_type = score_info['amenity_types']['transport']
+                if transport_type:
+                    distances_text.append(
+                        f"Transport ({transport_type.replace('_', ' ').title()}): {dist:.2f}km"
+                    )
+            else:
+                distances_text.append(f"{amenity.replace('_', ' ').title()}: {dist:.2f}km")
+    
     popup_html = f"""
     <div style='min-width: 200px'>
         <b>Rank #{rank}</b><br>
         Score: {score_info['total_score']:.2f}<br>
         <b>Distances:</b><br>
-        {'<br>'.join(f"{amenity.replace('_', ' ').title()}: {dist:.2f}km" 
-                     for amenity, dist in score_info['distances'].items())}
+        {'<br>'.join(distances_text)}
     </div>
     """
     
@@ -33,11 +46,10 @@ def add_ranked_location(m: folium.Map, location: Tuple[float, float],
     ).add_to(m)
 
 def add_amenities_to_map(m: folium.Map, 
-                        amenities: Dict[str, List[Tuple[float, float]]]) -> folium.Map:
+                        amenities: Dict[str, List[Tuple[float, float, str]]]) -> folium.Map:
     """Add amenity markers to map"""
     colors = {
-        'bus_station': 'blue',
-        'train_station': 'darkblue',
+        'transport': 'purple',
         'hospital': 'red',
         'playground': 'green',
         'water': 'lightblue',
@@ -45,8 +57,7 @@ def add_amenities_to_map(m: folium.Map,
     }
     
     icons = {
-        'bus_station': 'bus',
-        'train_station': 'train',
+        'transport': 'exchange',
         'hospital': 'plus',
         'playground': 'child',
         'water': 'tint',
@@ -54,13 +65,16 @@ def add_amenities_to_map(m: folium.Map,
     }
     
     for amenity_type, locations in amenities.items():
-        for lat, lon in locations:
+        for location in locations:
+            lat, lon, specific_type = location
+            popup_text = specific_type.replace('_', ' ').title() if amenity_type == 'transport' else amenity_type.replace('_', ' ').title()
+            
             folium.Marker(
                 [lat, lon],
                 icon=folium.Icon(color=colors[amenity_type], 
                                icon=icons[amenity_type], 
                                prefix='fa'),
-                popup=amenity_type.replace('_', ' ').title()
+                popup=popup_text
             ).add_to(m)
             
     return m

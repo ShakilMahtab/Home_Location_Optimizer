@@ -103,12 +103,27 @@ with col1:
                 for rank, (location, score_info) in enumerate(top_locations, 1):
                     with st.expander(f"Rank #{rank} - Score: {score_info['total_score']:.2f}"):
                         st.write("Distances to amenities:")
-                        for amenity, distance in score_info['distances'].items():
+                        
+                        # Display transport information
+                        transport_distance = score_info['distances']['transport']
+                        transport_type = score_info['amenity_types']['transport']
+                        transport_score = score_info['individual_scores']['transport']
+                        
+                        if transport_distance == float('inf'):
+                            st.write("Transport: Not found")
+                        else:
+                            st.write(f"Transport ({transport_type.replace('_', ' ').title()}): "
+                                   f"{transport_distance:.2f}km (Score: {transport_score:.2f})")
+                        
+                        # Display other amenities
+                        for amenity in ['hospital', 'playground', 'water', 'supermarket']:
+                            distance = score_info['distances'][amenity]
                             if distance == float('inf'):
                                 st.write(f"{amenity.replace('_', ' ').title()}: Not found")
                             else:
                                 score = score_info['individual_scores'][amenity]
-                                st.write(f"{amenity.replace('_', ' ').title()}: {distance:.2f}km (Score: {score:.2f})")
+                                st.write(f"{amenity.replace('_', ' ').title()}: "
+                                       f"{distance:.2f}km (Score: {score:.2f})")
                         
                         if score_info['combined_distance'] != float('inf'):
                             st.write(f"\nCombined distance: {score_info['combined_distance']:.2f}km")
