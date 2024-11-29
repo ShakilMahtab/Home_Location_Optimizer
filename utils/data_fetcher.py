@@ -29,26 +29,22 @@ class OSMDataFetcher:
             return f"""
             [out:json];
             (
-                // Lakes and ponds larger than 50m
-                way["natural"="water"]["way_area">2500](around:{radius},{lat},{lon});
-                relation["natural"="water"]["way_area">2500](around:{radius},{lat},{lon});
+                // Large natural water bodies (lakes, reservoirs)
+                way["natural"="water"]["water"="lake"]["way_area">2500](around:{radius},{lat},{lon});
+                way["natural"="water"]["water"="reservoir"]["way_area">2500](around:{radius},{lat},{lon});
                 
-                // Rivers wider than 50m
-                way["waterway"="river"]["width">50](around:{radius},{lat},{lon});
-                way["waterway"="river"]["width:minimum">50](around:{radius},{lat},{lon});
+                // Rivers and large streams
+                way["waterway"="river"](around:{radius},{lat},{lon});
+                way["waterway"="canal"]["width">10](around:{radius},{lat},{lon});
                 
-                // Natural water bodies
+                // Coastline and ocean
+                way["natural"="coastline"](around:{radius},{lat},{lon});
+                relation["natural"="water"]["water"="ocean"](around:{radius},{lat},{lon});
+                
+                // Large natural features
                 way["natural"="bay"](around:{radius},{lat},{lon});
                 way["natural"="strait"](around:{radius},{lat},{lon});
-                way["natural"="beach"](around:{radius},{lat},{lon});
-                way["natural"="wetland"](around:{radius},{lat},{lon});
-                
-                // Coastline (always large)
-                way["natural"="coastline"](around:{radius},{lat},{lon});
-                
-                // Waterfront areas
-                way["leisure"="marina"](around:{radius},{lat},{lon});
-                way["leisure"="beach_resort"](around:{radius},{lat},{lon});
+                way["natural"="fjord"](around:{radius},{lat},{lon});
             );
             out center;
             """
