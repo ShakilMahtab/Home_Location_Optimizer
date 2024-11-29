@@ -109,7 +109,7 @@ class OSMDataFetcher:
             amenities['transport'] = transport_locations
 
         # Fetch other amenities
-        other_amenities = ['hospital', 'playground', 'water', 'supermarket']
+        other_amenities = ['hospital', 'playground', 'water', 'supermarket', 'school']
         for amenity_type in other_amenities:
             query = self.create_query(lat, lon, radius, amenity_type)
             try:
