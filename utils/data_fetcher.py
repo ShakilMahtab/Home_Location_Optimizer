@@ -29,11 +29,16 @@ class OSMDataFetcher:
             return f"""
             [out:json];
             (
-              // Natural water bodies only
-              way["natural"="water"](around:{radius},{lat},{lon});
-              relation["natural"="water"](around:{radius},{lat},{lon});
-              way["waterway"="river"](around:{radius},{lat},{lon});
-              way["natural"="coastline"](around:{radius},{lat},{lon});
+                // Lakes and ponds larger than 50m
+                way["natural"="water"]["way_area">2500](around:{radius},{lat},{lon});
+                relation["natural"="water"]["way_area">2500](around:{radius},{lat},{lon});
+                
+                // Rivers wider than 50m
+                way["waterway"="river"]["width">50](around:{radius},{lat},{lon});
+                way["waterway"="river"]["width:minimum">50](around:{radius},{lat},{lon});
+                
+                // Coastline (always large)
+                way["natural"="coastline"](around:{radius},{lat},{lon});
             );
             out center;
             """
