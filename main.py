@@ -133,7 +133,7 @@ with col1:
                         for amenity in ['hospital', 'playground', 'water', 'supermarket', 'school']:
                             # Special handling for open spaces
                             if amenity == 'playground':
-                                amenity_display = "Open Space"
+                                amenity_display = "Sports Ground"
                             else:
                                 amenity_display = amenity.replace('_', ' ').title()
                             distance = score_info['distances'][amenity]
