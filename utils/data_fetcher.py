@@ -26,28 +26,29 @@ class OSMDataFetcher:
             out center;
             """
         elif amenity == 'water':
-            return f"""
+            return f'''
             [out:json];
             (
-                // Large natural water bodies (lakes, reservoirs)
-                way["natural"="water"]["water"="lake"]["way_area">2500](around:{radius},{lat},{lon});
-                way["natural"="water"]["water"="reservoir"]["way_area">2500](around:{radius},{lat},{lon});
-                
-                // Rivers and large streams
+                // Rivers and waterways without size restriction
                 way["waterway"="river"](around:{radius},{lat},{lon});
-                way["waterway"="canal"]["width">10](around:{radius},{lat},{lon});
+                relation["waterway"="river"](around:{radius},{lat},{lon});
+                way["waterway"="canal"](around:{radius},{lat},{lon});
                 
-                // Coastline and ocean
+                // River banks and edges
+                way["natural"="water"]["water"="river"](around:{radius},{lat},{lon});
+                way["waterway"="riverbank"](around:{radius},{lat},{lon});
+                
+                // Lakes and large water bodies
+                way["natural"="water"]["water"="lake"](around:{radius},{lat},{lon});
+                relation["natural"="water"]["water"="lake"](around:{radius},{lat},{lon});
+                
+                // Ocean and coastal features
                 way["natural"="coastline"](around:{radius},{lat},{lon});
-                relation["natural"="water"]["water"="ocean"](around:{radius},{lat},{lon});
-                
-                // Large natural features
                 way["natural"="bay"](around:{radius},{lat},{lon});
-                way["natural"="strait"](around:{radius},{lat},{lon});
-                way["natural"="fjord"](around:{radius},{lat},{lon});
+                way["water"="ocean"](around:{radius},{lat},{lon});
             );
             out center;
-            """
+            '''
         elif amenity == 'school':
             return f"""
             [out:json];
