@@ -2,7 +2,7 @@ import streamlit as st
 from streamlit_folium import folium_static
 from folium import plugins
 import numpy as np
-from streamlit_folium import st_folium
+from streamlit_folium import folium_static  # Use folium_static
 from utils.data_fetcher import OSMDataFetcher
 from utils.scoring import LocationScorer
 from utils.map_utils import create_base_map, add_amenities_to_map, add_ranked_location
@@ -109,16 +109,9 @@ with col1:
             
             # Display map
             try:
-                # Use width and height parameters
-                st_folium(
-                    m,
-                    width=800,
-                    height=600,
-                    returned_objects=[]
-                )
+                folium_static(m, width=800, height=600)  # Use folium_static instead of st_folium
             except Exception as e:
-                st.error("Error displaying map. Please try refreshing the page.")
-                print(f"Map error: {str(e)}")
+                st.error(f"Error displaying map: {str(e)}")
             
             # Display scores
             with col2:
