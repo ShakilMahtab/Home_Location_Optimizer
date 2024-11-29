@@ -8,8 +8,8 @@ def create_base_map(location: Tuple[float, float]) -> folium.Map:
         return folium.Map(
             location=location,
             zoom_start=14,
-            tiles='CartoDB Positron',  # Use exact tile provider name
-            attr='CartoDB'
+            tiles='OpenStreetMap',
+            attr='OpenStreetMap'
         )
     except Exception as e:
         print(f"Error creating map: {str(e)}")
