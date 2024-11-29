@@ -35,9 +35,9 @@ class LocationScorer:
         
     def get_combined_distance(self, distances: Dict[str, float]) -> float:
         """Calculate the average distance to all amenities"""
-        valid_distances = [d for d in distances.values() if d != float('inf')]
+        valid_distances = [d for d in distances.values() if d is not None]
         if not valid_distances:
-            return float('inf')
+            return None
         return sum(valid_distances) / len(valid_distances)
 
     def score_location(self, location: Tuple[float, float], 
@@ -46,6 +46,7 @@ class LocationScorer:
         scores = {}
         distances = {}
         amenity_types = {}
+        found_amenities = 0
         
         # Calculate scores and distances for each amenity
         for amenity_type, locations in amenities.items():
@@ -55,21 +56,32 @@ class LocationScorer:
                                             for loc in locations)
                 scores[amenity_type] = score
                 amenity_types[amenity_type] = closest_type
+                if score > 0:
+                    found_amenities += 1
             else:
-                distances[amenity_type] = float('inf')
+                distances[amenity_type] = None
                 scores[amenity_type] = 0
                 amenity_types[amenity_type] = None
             
-        # Calculate total score as weighted average of individual scores
-        total_score = sum(scores[amenity] * self.weights[amenity]
-                         for amenity in amenities.keys())
+        # Calculate total score as weighted average of found amenities
+        total_weight = sum(self.weights[amenity] for amenity in amenities.keys() 
+                          if distances[amenity] is not None)
+        
+        if total_weight > 0:
+            total_score = sum(scores[amenity] * self.weights[amenity]
+                            for amenity in amenities.keys()
+                            if distances[amenity] is not None) / total_weight
+        else:
+            total_score = 0
         
         combined_distance = self.get_combined_distance(distances)
-                         
+        
         return {
             'total_score': total_score,
             'individual_scores': scores,
             'distances': distances,
             'combined_distance': combined_distance,
-            'amenity_types': amenity_types
+            'amenity_types': amenity_types,
+            'found_amenities': found_amenities,
+            'total_amenities': len(amenities)
         }
