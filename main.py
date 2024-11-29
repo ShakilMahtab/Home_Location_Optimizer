@@ -7,9 +7,13 @@ from utils.data_fetcher import OSMDataFetcher
 from utils.scoring import LocationScorer
 from utils.map_utils import create_base_map, add_amenities_to_map, add_ranked_location
 from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
 
 # Initialize services
-geocoder = Nominatim(user_agent="location_optimizer")
+geocoder = Nominatim(
+    user_agent="location_optimizer",
+    timeout=10  # Increase timeout to 10 seconds
+)
 data_fetcher = OSMDataFetcher()
 scorer = LocationScorer()
 
@@ -52,9 +56,16 @@ with col1:
     st.subheader("Location Map")
     
     if location_search:
-        location = geocoder.geocode(location_search)
-        if location is None:
-            st.error("Location not found. Please try a different search term.")
+        try:
+            location = geocoder.geocode(location_search, timeout=10)
+            if location is None:
+                st.error("Location not found. Please try a different search term.")
+        except (GeocoderTimedOut, GeocoderUnavailable) as e:
+            st.error("Unable to connect to geocoding service. Please try again in a few moments.")
+            st.stop()
+        except Exception as e:
+            st.error(f"Error finding location: {str(e)}")
+            st.stop()
         else:
             center_lat, center_lon = location.latitude, location.longitude
             st.write(f"📍 Showing results for: {location.address}")
