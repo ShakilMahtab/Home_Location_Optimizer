@@ -37,8 +37,18 @@ class OSMDataFetcher:
                 way["waterway"="river"]["width">50](around:{radius},{lat},{lon});
                 way["waterway"="river"]["width:minimum">50](around:{radius},{lat},{lon});
                 
+                // Natural water bodies
+                way["natural"="bay"](around:{radius},{lat},{lon});
+                way["natural"="strait"](around:{radius},{lat},{lon});
+                way["natural"="beach"](around:{radius},{lat},{lon});
+                way["natural"="wetland"](around:{radius},{lat},{lon});
+                
                 // Coastline (always large)
                 way["natural"="coastline"](around:{radius},{lat},{lon});
+                
+                // Waterfront areas
+                way["leisure"="marina"](around:{radius},{lat},{lon});
+                way["leisure"="beach_resort"](around:{radius},{lat},{lon});
             );
             out center;
             """

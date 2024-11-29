@@ -123,7 +123,7 @@ with col1:
                             else:
                                 amenity_display = amenity.replace('_', ' ').title()
                             distance = score_info['distances'][amenity]
-                            if distance == float('inf'):
+                            if distance is None or distance == float('inf'):
                                 st.write(f"{amenity_display}: Not found")
                             else:
                                 score = score_info['individual_scores'][amenity]
