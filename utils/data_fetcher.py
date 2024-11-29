@@ -25,6 +25,24 @@ class OSMDataFetcher:
             );
             out center;
             """
+        elif amenity == 'water':
+            return f"""
+            [out:json];
+            (
+              // Natural water bodies
+              way["natural"="water"](around:{radius},{lat},{lon});
+              relation["natural"="water"](around:{radius},{lat},{lon});
+              way["waterway"="river"](around:{radius},{lat},{lon});
+              way["waterway"="stream"](around:{radius},{lat},{lon});
+              way["waterway"="canal"](around:{radius},{lat},{lon});
+              // Artificial water features
+              node["leisure"="swimming_pool"](around:{radius},{lat},{lon});
+              way["leisure"="swimming_pool"](around:{radius},{lat},{lon});
+              node["amenity"="fountain"](around:{radius},{lat},{lon});
+              way["amenity"="fountain"](around:{radius},{lat},{lon});
+            );
+            out center;
+            """
         else:
             return f"""
             [out:json];
