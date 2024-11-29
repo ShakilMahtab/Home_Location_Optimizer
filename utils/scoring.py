@@ -5,16 +5,12 @@ import numpy as np
 class LocationScorer:
     def __init__(self):
         self.weights = {
-            'transport': 0.3,
-            'family': 0.25,
-            'services': 0.25,
-            'nature': 0.2
-        }
-        self.minimum_amenities = {
-            'transport': 1,
-            'family': 1,
-            'services': 1,
-            'nature': 0  # Nature is optional
+            'bus_station': 0.15,
+            'train_station': 0.15,
+            'hospital': 0.2,
+            'playground': 0.15,
+            'water': 0.15,
+            'supermarket': 0.2
         }
         
     def calculate_distance_score(self, point: Tuple[float, float], 
@@ -36,67 +32,37 @@ class LocationScorer:
         
     def get_combined_distance(self, distances: Dict[str, float]) -> float:
         """Calculate the average distance to all amenities"""
-        if not distances:
+        valid_distances = [d for d in distances.values() if d != float('inf')]
+        if not valid_distances:
             return float('inf')
-        return sum(distances.values()) / len(distances)
+        return sum(valid_distances) / len(valid_distances)
 
     def score_location(self, location: Tuple[float, float], 
                       amenities: Dict[str, List[Tuple[float, float]]]) -> Dict:
-        """Calculate overall location score and distances with improved missing amenities handling"""
+        """Calculate scores and distances for individual amenities"""
         scores = {}
         distances = {}
-        missing_amenities = []
-        available_weight_total = 0
         
-        # First pass: identify missing required amenities and calculate available weight
-        for category, locations in amenities.items():
-            if not locations and self.minimum_amenities[category] > 0:
-                missing_amenities.append(category)
-            else:
-                available_weight_total += self.weights[category]
-
-        # If we're missing any required amenities, return a zero score
-        if missing_amenities:
-            return {
-                'total_score': 0,
-                'category_scores': {cat: 0 for cat in amenities.keys()},
-                'distances': {cat: float('inf') for cat in amenities.keys()},
-                'combined_distance': float('inf'),
-                'missing_required_amenities': missing_amenities
-            }
-
-        # Normalize remaining weights
-        adjusted_weights = {
-            cat: (self.weights[cat] / available_weight_total) 
-            for cat in amenities.keys() 
-            if cat not in missing_amenities
-        }
-        
-        # Calculate scores and distances
-        for category, locations in amenities.items():
+        # Calculate scores and distances for each amenity
+        for amenity_type, locations in amenities.items():
             if locations:
-                category_distances = [geodesic(location, amenity).kilometers 
-                                   for amenity in locations]
-                distances[category] = min(category_distances)
-                scores[category] = self.calculate_distance_score(location, locations)
+                amenity_distances = [geodesic(location, amenity).kilometers 
+                                  for amenity in locations]
+                distances[amenity_type] = min(amenity_distances)
+                scores[amenity_type] = self.calculate_distance_score(location, locations)
             else:
-                distances[category] = float('inf')
-                scores[category] = 0
+                distances[amenity_type] = float('inf')
+                scores[amenity_type] = 0
             
-        # Calculate weighted total score using adjusted weights
-        total_score = sum(scores[category] * adjusted_weights.get(category, 0)
-                         for category in scores.keys())
+        # Calculate total score as weighted average of individual scores
+        total_score = sum(scores[amenity] * self.weights[amenity]
+                         for amenity in amenities.keys())
         
-        combined_distance = self.get_combined_distance({
-            k: v for k, v in distances.items() 
-            if v != float('inf')
-        })
+        combined_distance = self.get_combined_distance(distances)
                          
         return {
             'total_score': total_score,
-            'category_scores': scores,
+            'individual_scores': scores,
             'distances': distances,
-            'combined_distance': combined_distance,
-            'adjusted_weights': adjusted_weights,
-            'missing_amenities': missing_amenities
+            'combined_distance': combined_distance
         }

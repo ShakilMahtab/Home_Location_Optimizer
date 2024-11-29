@@ -18,8 +18,8 @@ def add_ranked_location(m: folium.Map, location: Tuple[float, float],
         <b>Rank #{rank}</b><br>
         Score: {score_info['total_score']:.2f}<br>
         <b>Distances:</b><br>
-        {'<br>'.join(f"{cat.title()}: {dist:.2f}km" 
-                     for cat, dist in score_info['distances'].items())}
+        {'<br>'.join(f"{amenity.replace('_', ' ').title()}: {dist:.2f}km" 
+                     for amenity, dist in score_info['distances'].items())}
     </div>
     """
     
@@ -36,33 +36,37 @@ def add_amenities_to_map(m: folium.Map,
                         amenities: Dict[str, List[Tuple[float, float]]]) -> folium.Map:
     """Add amenity markers to map"""
     colors = {
-        'transport': 'blue',
-        'family': 'green',
-        'services': 'red',
-        'nature': 'purple'
+        'bus_station': 'blue',
+        'train_station': 'darkblue',
+        'hospital': 'red',
+        'playground': 'green',
+        'water': 'lightblue',
+        'supermarket': 'orange'
     }
     
     icons = {
-        'transport': 'train',
-        'family': 'home',
-        'services': 'plus',
-        'nature': 'tree'
+        'bus_station': 'bus',
+        'train_station': 'train',
+        'hospital': 'plus',
+        'playground': 'child',
+        'water': 'tint',
+        'supermarket': 'shopping-cart'
     }
     
-    for category, locations in amenities.items():
+    for amenity_type, locations in amenities.items():
         for lat, lon in locations:
             folium.Marker(
                 [lat, lon],
-                icon=folium.Icon(color=colors[category], 
-                               icon=icons[category], 
+                icon=folium.Icon(color=colors[amenity_type], 
+                               icon=icons[amenity_type], 
                                prefix='fa'),
-                popup=category.title()
+                popup=amenity_type.replace('_', ' ').title()
             ).add_to(m)
             
     return m
 
 def create_heatmap(locations: List[Tuple[float, float]], 
-                  scores: List[float]) -> folium.Map:
+                   scores: List[float]) -> folium.Map:
     """Create heatmap layer for scoring visualization"""
     location_center = locations[0]
     m = create_base_map(location_center)
