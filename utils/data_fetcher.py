@@ -9,25 +9,7 @@ class OSMDataFetcher:
         
     def create_query(self, lat: float, lon: float, radius: int, amenity: str) -> str:
         """Create Overpass API query for amenities"""
-        if amenity == 'transport':
-            return f"""
-            [out:json];
-            (
-                // Bus stations and stops
-                node["highway"="bus_stop"](around:{radius},{lat},{lon});
-                way["highway"="bus_stop"](around:{radius},{lat},{lon});
-                node["amenity"="bus_station"](around:{radius},{lat},{lon});
-                way["amenity"="bus_station"](around:{radius},{lat},{lon});
-                
-                // Train and subway stations
-                node["railway"="station"](around:{radius},{lat},{lon});
-                way["railway"="station"](around:{radius},{lat},{lon});
-                node["railway"="subway_station"](around:{radius},{lat},{lon});
-                way["railway"="subway_station"](around:{radius},{lat},{lon});
-            );
-            out center;
-            """
-        elif amenity == 'playground':
+        if amenity == 'playground':
             return f"""
             [out:json];
             (
@@ -72,39 +54,10 @@ class OSMDataFetcher:
             [out:json];
             (
                 // Schools and educational institutions
-                node["amenity"="school"](around:{radius},{lat},{lon});
                 way["amenity"="school"](around:{radius},{lat},{lon});
                 relation["amenity"="school"](around:{radius},{lat},{lon});
-                node["amenity"="university"](around:{radius},{lat},{lon});
-                way["amenity"="university"](around:{radius},{lat},{lon});
-                node["amenity"="college"](around:{radius},{lat},{lon});
-                way["amenity"="college"](around:{radius},{lat},{lon});
-            );
-            out center;
-            """
-        elif amenity == 'hospital':
-            return f"""
-            [out:json];
-            (
-                // Hospitals and medical centers
-                node["amenity"="hospital"](around:{radius},{lat},{lon});
-                way["amenity"="hospital"](around:{radius},{lat},{lon});
-                relation["amenity"="hospital"](around:{radius},{lat},{lon});
-                node["amenity"="clinic"](around:{radius},{lat},{lon});
-                way["amenity"="clinic"](around:{radius},{lat},{lon});
-            );
-            out center;
-            """
-        elif amenity == 'supermarket':
-            return f"""
-            [out:json];
-            (
-                // Supermarkets and grocery stores
-                node["shop"="supermarket"](around:{radius},{lat},{lon});
-                way["shop"="supermarket"](around:{radius},{lat},{lon});
-                relation["shop"="supermarket"](around:{radius},{lat},{lon});
-                node["shop"="grocery"](around:{radius},{lat},{lon});
-                way["shop"="grocery"](around:{radius},{lat},{lon});
+                way["building"="school"](around:{radius},{lat},{lon});
+                relation["building"="school"](around:{radius},{lat},{lon});
             );
             out center;
             """
@@ -130,8 +83,34 @@ class OSMDataFetcher:
             'school': []
         }
         
-        # Fetch amenities from OSM
-        for amenity_type in amenities.keys():
+        # Fetch bus and train stations separately but combine them
+        transport_types = ['bus_station', 'train_station']
+        transport_locations = []
+        
+        for transport_type in transport_types:
+            query = self.create_query(lat, lon, radius, transport_type)
+            try:
+                response = requests.post(self.base_url, data=query)
+                if response.status_code == 200:
+                    data = response.json()
+                    for element in data.get('elements', []):
+                        if 'lat' in element and 'lon' in element:
+                            transport_locations.append((element['lat'], element['lon'], transport_type))
+                        elif 'center' in element:
+                            transport_locations.append((element['center']['lat'], 
+                                                     element['center']['lon'], 
+                                                     transport_type))
+                time.sleep(1)  # Rate limiting
+            except Exception as e:
+                print(f"Error fetching {transport_type}: {str(e)}")
+
+        # Find closest transport location for the target coordinates
+        if transport_locations:
+            amenities['transport'] = transport_locations
+
+        # Fetch other amenities
+        other_amenities = ['hospital', 'playground', 'water', 'supermarket']
+        for amenity_type in other_amenities:
             query = self.create_query(lat, lon, radius, amenity_type)
             try:
                 response = requests.post(self.base_url, data=query)
@@ -139,33 +118,13 @@ class OSMDataFetcher:
                     data = response.json()
                     for element in data.get('elements', []):
                         if 'lat' in element and 'lon' in element:
-                            amenities[amenity_type].append((
-                                element['lat'],
-                                element['lon'],
-                                f"OSM {amenity_type}"
-                            ))
+                            amenities[amenity_type].append((element['lat'], element['lon'], amenity_type))
                         elif 'center' in element:
-                            amenities[amenity_type].append((
-                                element['center']['lat'],
-                                element['center']['lon'],
-                                f"OSM {amenity_type}"
-                            ))
+                            amenities[amenity_type].append((element['center']['lat'], 
+                                                         element['center']['lon'],
+                                                         amenity_type))
                 time.sleep(1)  # Rate limiting
             except Exception as e:
-                print(f"Error fetching {amenity_type} from OSM: {str(e)}")
-        
-        # Remove duplicates based on proximity (within 50 meters)
-        for amenity_type in amenities:
-            unique_locations = []
-            for loc in amenities[amenity_type]:
-                is_duplicate = False
-                for existing_loc in unique_locations:
-                    distance = geodesic((loc[0], loc[1]), (existing_loc[0], existing_loc[1])).meters
-                    if distance < 50:  # Consider locations within 50m as duplicates
-                        is_duplicate = True
-                        break
-                if not is_duplicate:
-                    unique_locations.append(loc)
-            amenities[amenity_type] = unique_locations
+                print(f"Error fetching {amenity_type}: {str(e)}")
                 
         return amenities
