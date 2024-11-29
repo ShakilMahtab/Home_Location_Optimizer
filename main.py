@@ -109,7 +109,7 @@ with col1:
                         transport_type = score_info['amenity_types']['transport']
                         transport_score = score_info['individual_scores']['transport']
                         
-                        if transport_distance == float('inf'):
+                        if transport_distance == float('inf') or transport_type is None:
                             st.write("Transport: Not found")
                         else:
                             st.write(f"Transport ({transport_type.replace('_', ' ').title()}): "

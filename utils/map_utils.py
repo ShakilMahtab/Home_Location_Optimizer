@@ -59,7 +59,7 @@ def add_amenities_to_map(m: folium.Map,
     icons = {
         'transport': 'exchange',
         'hospital': 'plus',
-        'playground': 'tree',
+        'playground': 'futbol',  # Changed from 'tree' to 'futbol'
         'water': 'tint',
         'supermarket': 'shopping-cart'
     }
