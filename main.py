@@ -103,9 +103,23 @@ with col1:
                 
                 for rank, (location, score_info) in enumerate(top_locations, 1):
                     with st.expander(f"Rank #{rank} - Score: {score_info['total_score']:.2f}"):
+                        if 'missing_required_amenities' in score_info and score_info['missing_required_amenities']:
+                            st.warning("⚠️ Missing required amenities: " + 
+                                     ", ".join(cat.title() for cat in score_info['missing_required_amenities']))
+                        
                         st.write("Distances to amenities:")
                         for category, distance in score_info['distances'].items():
-                            st.write(f"{category.title()}: {distance:.2f}km")
-                        st.write(f"Combined distance: {score_info['combined_distance']:.2f}km")
+                            if distance == float('inf'):
+                                st.write(f"{category.title()}: No amenities found")
+                            else:
+                                st.write(f"{category.title()}: {distance:.2f}km")
+                        
+                        if 'adjusted_weights' in score_info:
+                            st.write("\nAdjusted weights:")
+                            for category, weight in score_info['adjusted_weights'].items():
+                                st.write(f"{category.title()}: {weight:.2f}")
+                        
+                        if score_info['combined_distance'] != float('inf'):
+                            st.write(f"\nCombined distance: {score_info['combined_distance']:.2f}km")
     else:
         st.info("Enter a location to begin your search")
