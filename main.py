@@ -116,7 +116,7 @@ with col1:
                                    f"{transport_distance:.2f}km (Score: {transport_score:.2f})")
                         
                         # Display other amenities
-                        for amenity in ['hospital', 'playground', 'water', 'supermarket']:
+                        for amenity in ['hospital', 'playground', 'water', 'supermarket', 'school']:
                             # Special handling for open spaces
                             if amenity == 'playground':
                                 amenity_display = "Open Space"

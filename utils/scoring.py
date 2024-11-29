@@ -5,11 +5,12 @@ import numpy as np
 class LocationScorer:
     def __init__(self):
         self.weights = {
-            'transport': 0.3,
-            'hospital': 0.2,
+            'transport': 0.25,
+            'hospital': 0.15,
             'playground': 0.15,
             'water': 0.15,
-            'supermarket': 0.2
+            'supermarket': 0.15,
+            'school': 0.15
         }
         
     def calculate_distance_score(self, point: Tuple[float, float], 

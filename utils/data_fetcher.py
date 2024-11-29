@@ -42,6 +42,18 @@ class OSMDataFetcher:
             );
             out center;
             """
+        elif amenity == 'school':
+            return f"""
+            [out:json];
+            (
+                // Schools and educational institutions
+                way["amenity"="school"](around:{radius},{lat},{lon});
+                relation["amenity"="school"](around:{radius},{lat},{lon});
+                way["building"="school"](around:{radius},{lat},{lon});
+                relation["building"="school"](around:{radius},{lat},{lon});
+            );
+            out center;
+            """
         else:
             return f"""
             [out:json];
@@ -60,7 +72,8 @@ class OSMDataFetcher:
             'hospital': [],
             'playground': [],
             'water': [],
-            'supermarket': []
+            'supermarket': [],
+            'school': []
         }
         
         # Fetch bus and train stations separately but combine them

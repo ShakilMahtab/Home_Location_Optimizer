@@ -56,7 +56,8 @@ def add_amenities_to_map(m: folium.Map,
         'hospital': 'red',
         'playground': 'green',
         'water': 'lightblue',
-        'supermarket': 'orange'
+        'supermarket': 'orange',
+        'school': 'pink'
     }
     
     icons = {
@@ -64,7 +65,8 @@ def add_amenities_to_map(m: folium.Map,
         'hospital': 'plus',
         'playground': 'futbol',  # Changed from 'tree' to 'futbol'
         'water': 'tint',
-        'supermarket': 'shopping-cart'
+        'supermarket': 'shopping-cart',
+        'school': 'graduation-cap'
     }
     
     for amenity_type, locations in amenities.items():
