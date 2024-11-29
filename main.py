@@ -117,12 +117,17 @@ with col1:
                         
                         # Display other amenities
                         for amenity in ['hospital', 'playground', 'water', 'supermarket']:
+                            # Special handling for open spaces
+                            if amenity == 'playground':
+                                amenity_display = "Open Space"
+                            else:
+                                amenity_display = amenity.replace('_', ' ').title()
                             distance = score_info['distances'][amenity]
                             if distance == float('inf'):
-                                st.write(f"{amenity.replace('_', ' ').title()}: Not found")
+                                st.write(f"{amenity_display}: Not found")
                             else:
                                 score = score_info['individual_scores'][amenity]
-                                st.write(f"{amenity.replace('_', ' ').title()}: "
+                                st.write(f"{amenity_display}: "
                                        f"{distance:.2f}km (Score: {score:.2f})")
                         
                         if score_info['combined_distance'] != float('inf'):

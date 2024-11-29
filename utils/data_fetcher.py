@@ -9,15 +9,32 @@ class OSMDataFetcher:
         
     def create_query(self, lat: float, lon: float, radius: int, amenity: str) -> str:
         """Create Overpass API query for amenities"""
-        return f"""
-        [out:json];
-        (
-          node["amenity"="{amenity}"](around:{radius},{lat},{lon});
-          way["amenity"="{amenity}"](around:{radius},{lat},{lon});
-          relation["amenity"="{amenity}"](around:{radius},{lat},{lon});
-        );
-        out center;
-        """
+        if amenity == 'playground':
+            return f"""
+            [out:json];
+            (
+              node["amenity"="playground"](around:{radius},{lat},{lon});
+              way["amenity"="playground"](around:{radius},{lat},{lon});
+              relation["amenity"="playground"](around:{radius},{lat},{lon});
+              node["leisure"="park"](around:{radius},{lat},{lon});
+              way["leisure"="park"](around:{radius},{lat},{lon});
+              node["leisure"="pitch"](around:{radius},{lat},{lon});
+              way["leisure"="pitch"](around:{radius},{lat},{lon});
+              node["leisure"="sports_centre"](around:{radius},{lat},{lon});
+              way["leisure"="sports_centre"](around:{radius},{lat},{lon});
+            );
+            out center;
+            """
+        else:
+            return f"""
+            [out:json];
+            (
+              node["amenity"="{amenity}"](around:{radius},{lat},{lon});
+              way["amenity"="{amenity}"](around:{radius},{lat},{lon});
+              relation["amenity"="{amenity}"](around:{radius},{lat},{lon});
+            );
+            out center;
+            """
 
     def fetch_amenities(self, lat: float, lon: float, radius: int = 1000) -> Dict[str, List[Tuple[float, float, str]]]:
         """Fetch nearby amenities from OpenStreetMap"""
