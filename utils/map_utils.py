@@ -7,7 +7,8 @@ def create_base_map(location: Tuple[float, float]) -> folium.Map:
     return folium.Map(
         location=location,
         zoom_start=14,
-        tiles='cartodbpositron'
+        tiles='https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+        attr='Google Maps'
     )
 
 def add_ranked_location(m: folium.Map, location: Tuple[float, float], 

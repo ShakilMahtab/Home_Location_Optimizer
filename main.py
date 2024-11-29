@@ -1,5 +1,6 @@
 import streamlit as st
 from streamlit_folium import folium_static
+from folium import plugins
 import numpy as np
 from streamlit_folium import st_folium
 from utils.data_fetcher import OSMDataFetcher
