@@ -29,17 +29,11 @@ class OSMDataFetcher:
             return f"""
             [out:json];
             (
-              // Natural water bodies
+              // Natural water bodies only
               way["natural"="water"](around:{radius},{lat},{lon});
               relation["natural"="water"](around:{radius},{lat},{lon});
               way["waterway"="river"](around:{radius},{lat},{lon});
-              way["waterway"="stream"](around:{radius},{lat},{lon});
-              way["waterway"="canal"](around:{radius},{lat},{lon});
-              // Artificial water features
-              node["leisure"="swimming_pool"](around:{radius},{lat},{lon});
-              way["leisure"="swimming_pool"](around:{radius},{lat},{lon});
-              node["amenity"="fountain"](around:{radius},{lat},{lon});
-              way["amenity"="fountain"](around:{radius},{lat},{lon});
+              way["natural"="coastline"](around:{radius},{lat},{lon});
             );
             out center;
             """
