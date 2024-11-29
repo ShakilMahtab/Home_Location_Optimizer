@@ -13,15 +13,15 @@ class OSMDataFetcher:
             return f"""
             [out:json];
             (
-              node["amenity"="playground"](around:{radius},{lat},{lon});
-              way["amenity"="playground"](around:{radius},{lat},{lon});
-              relation["amenity"="playground"](around:{radius},{lat},{lon});
-              node["leisure"="park"](around:{radius},{lat},{lon});
-              way["leisure"="park"](around:{radius},{lat},{lon});
-              node["leisure"="pitch"](around:{radius},{lat},{lon});
-              way["leisure"="pitch"](around:{radius},{lat},{lon});
-              node["leisure"="sports_centre"](around:{radius},{lat},{lon});
-              way["leisure"="sports_centre"](around:{radius},{lat},{lon});
+                // Sports grounds and pitches larger than 100m
+                way["leisure"="pitch"]["way_area">10000](around:{radius},{lat},{lon});
+                relation["leisure"="pitch"]["way_area">10000](around:{radius},{lat},{lon});
+                way["leisure"="sports_centre"]["way_area">10000](around:{radius},{lat},{lon});
+                relation["leisure"="sports_centre"]["way_area">10000](around:{radius},{lat},{lon});
+                
+                // Parks larger than 100m
+                way["leisure"="park"]["way_area">10000](around:{radius},{lat},{lon});
+                relation["leisure"="park"]["way_area">10000](around:{radius},{lat},{lon});
             );
             out center;
             """
