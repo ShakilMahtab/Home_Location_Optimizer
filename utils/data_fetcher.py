@@ -1,11 +1,77 @@
 import requests
+import os
+import googlemaps
 from typing import Dict, List, Tuple
 import time
 from geopy.distance import geodesic
 
+class GooglePlacesFetcher:
+    def __init__(self):
+        self.gmaps = googlemaps.Client(key=os.environ['GOOGLE_MAPS_API_KEY'])
+        self.type_mapping = {
+            'transport': ['transit_station', 'bus_station', 'train_station', 'subway_station'],
+            'hospital': ['hospital'],
+            'playground': ['park'],
+            'water': [],  # Natural features not well-supported in Places API
+            'supermarket': ['supermarket', 'grocery_or_supermarket'],
+            'school': ['school', 'primary_school', 'secondary_school']
+        }
+        
+    def fetch_places(self, lat: float, lon: float, radius: int, amenity_type: str) -> List[Tuple[float, float, str]]:
+        """Fetch places from Google Places API"""
+        results = []
+        place_types = self.type_mapping.get(amenity_type, [])
+        
+        if not place_types:  # Skip if no mapping exists
+            return results
+            
+        for place_type in place_types:
+            try:
+                places = self.gmaps.places_nearby(
+                    location=(lat, lon),
+                    radius=radius,
+                    type=place_type
+                )
+                
+                for place in places.get('results', []):
+                    location = place['geometry']['location']
+                    name = place.get('name', place_type)
+                    results.append((
+                        location['lat'],
+                        location['lng'],
+                        f"{name} ({place_type})"
+                    ))
+                
+                # Handle pagination if necessary
+                while 'next_page_token' in places:
+                    time.sleep(2)  # Required delay between requests
+                    places = self.gmaps.places_nearby(
+                        location=(lat, lon),
+                        radius=radius,
+                        type=place_type,
+                        page_token=places['next_page_token']
+                    )
+                    for place in places.get('results', []):
+                        location = place['geometry']['location']
+                        name = place.get('name', place_type)
+                        results.append((
+                            location['lat'],
+                            location['lng'],
+                            f"{name} ({place_type})"
+                        ))
+                
+            except Exception as e:
+                print(f"Error fetching from Google Places API for {place_type}: {str(e)}")
+                continue
+            
+            time.sleep(2)  # Rate limiting between different place types
+            
+        return results
+
 class OSMDataFetcher:
     def __init__(self):
         self.base_url = "https://overpass-api.de/api/interpreter"
+        self.google_fetcher = GooglePlacesFetcher()
         
     def create_query(self, lat: float, lon: float, radius: int, amenity: str) -> str:
         """Create Overpass API query for amenities"""
@@ -73,7 +139,7 @@ class OSMDataFetcher:
             """
 
     def fetch_amenities(self, lat: float, lon: float, radius: int = 1000) -> Dict[str, List[Tuple[float, float, str]]]:
-        """Fetch nearby amenities from OpenStreetMap"""
+        """Fetch nearby amenities from both OpenStreetMap and Google Places"""
         amenities = {
             'transport': [],
             'hospital': [],
@@ -83,10 +149,13 @@ class OSMDataFetcher:
             'school': []
         }
         
-        # Fetch bus and train stations separately but combine them
-        transport_types = ['bus_station', 'train_station']
-        transport_locations = []
+        # Fetch from Google Places API first
+        for amenity_type in amenities.keys():
+            google_results = self.google_fetcher.fetch_places(lat, lon, radius, amenity_type)
+            amenities[amenity_type].extend(google_results)
         
+        # Fetch transport locations from OSM
+        transport_types = ['bus_station', 'train_station']
         for transport_type in transport_types:
             query = self.create_query(lat, lon, radius, transport_type)
             try:
@@ -95,21 +164,19 @@ class OSMDataFetcher:
                     data = response.json()
                     for element in data.get('elements', []):
                         if 'lat' in element and 'lon' in element:
-                            transport_locations.append((element['lat'], element['lon'], transport_type))
+                            amenities['transport'].append((element['lat'], element['lon'], transport_type))
                         elif 'center' in element:
-                            transport_locations.append((element['center']['lat'], 
-                                                     element['center']['lon'], 
-                                                     transport_type))
+                            amenities['transport'].append((
+                                element['center']['lat'],
+                                element['center']['lon'],
+                                transport_type
+                            ))
                 time.sleep(1)  # Rate limiting
             except Exception as e:
-                print(f"Error fetching {transport_type}: {str(e)}")
+                print(f"Error fetching {transport_type} from OSM: {str(e)}")
 
-        # Find closest transport location for the target coordinates
-        if transport_locations:
-            amenities['transport'] = transport_locations
-
-        # Fetch other amenities
-        other_amenities = ['hospital', 'playground', 'water', 'supermarket']
+        # Fetch other amenities from OSM
+        other_amenities = ['hospital', 'playground', 'water', 'supermarket', 'school']
         for amenity_type in other_amenities:
             query = self.create_query(lat, lon, radius, amenity_type)
             try:
@@ -118,13 +185,33 @@ class OSMDataFetcher:
                     data = response.json()
                     for element in data.get('elements', []):
                         if 'lat' in element and 'lon' in element:
-                            amenities[amenity_type].append((element['lat'], element['lon'], amenity_type))
+                            amenities[amenity_type].append((
+                                element['lat'],
+                                element['lon'],
+                                f"OSM {amenity_type}"
+                            ))
                         elif 'center' in element:
-                            amenities[amenity_type].append((element['center']['lat'], 
-                                                         element['center']['lon'],
-                                                         amenity_type))
+                            amenities[amenity_type].append((
+                                element['center']['lat'],
+                                element['center']['lon'],
+                                f"OSM {amenity_type}"
+                            ))
                 time.sleep(1)  # Rate limiting
             except Exception as e:
-                print(f"Error fetching {amenity_type}: {str(e)}")
+                print(f"Error fetching {amenity_type} from OSM: {str(e)}")
+        
+        # Remove duplicates based on proximity (within 50 meters)
+        for amenity_type in amenities:
+            unique_locations = []
+            for loc in amenities[amenity_type]:
+                is_duplicate = False
+                for existing_loc in unique_locations:
+                    distance = geodesic((loc[0], loc[1]), (existing_loc[0], existing_loc[1])).meters
+                    if distance < 50:  # Consider locations within 50m as duplicates
+                        is_duplicate = True
+                        break
+                if not is_duplicate:
+                    unique_locations.append(loc)
+            amenities[amenity_type] = unique_locations
                 
         return amenities
