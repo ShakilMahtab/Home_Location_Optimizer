@@ -108,7 +108,11 @@ with col1:
                 add_ranked_location(m, location, rank, score_info)
             
             # Display map
-            st_folium(m, width=800)
+            try:
+                st_folium(m, width=800)
+            except Exception as e:
+                st.error("Error displaying map. Please try refreshing the page.")
+                print(f"Map error: {str(e)}")
             
             # Display scores
             with col2:
