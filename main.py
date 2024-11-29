@@ -37,9 +37,11 @@ location_search = st.sidebar.text_input(
 )
 
 # Search radius
-radius = st.sidebar.slider(
+radius = st.sidebar.number_input(
     "Search Radius (km)",
-    0.5, 10.0, 10.0,
+    min_value=0.5,
+    max_value=50.0,
+    value=10.0,
     step=0.5
 ) * 1000  # Convert to meters
 
