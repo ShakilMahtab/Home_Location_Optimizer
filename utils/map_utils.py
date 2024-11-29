@@ -4,12 +4,16 @@ import branca.colormap as cm
 
 def create_base_map(location: Tuple[float, float]) -> folium.Map:
     """Create base map centered on location"""
-    return folium.Map(
-        location=location,
-        zoom_start=14,
-        tiles='cartodbpositron',  # Change to CartoDB tiles
-        attr='CartoDB'  # Update attribution
-    )
+    try:
+        return folium.Map(
+            location=location,
+            zoom_start=14,
+            tiles='CartoDB Positron',  # Use exact tile provider name
+            attr='CartoDB'
+        )
+    except Exception as e:
+        print(f"Error creating map: {str(e)}")
+        raise
 
 def add_ranked_location(m: folium.Map, location: Tuple[float, float], 
                        rank: int, score_info: Dict) -> None:

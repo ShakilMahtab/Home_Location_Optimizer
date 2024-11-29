@@ -109,7 +109,13 @@ with col1:
             
             # Display map
             try:
-                st_folium(m, width=800)
+                # Use width and height parameters
+                st_folium(
+                    m,
+                    width=800,
+                    height=600,
+                    returned_objects=[]
+                )
             except Exception as e:
                 st.error("Error displaying map. Please try refreshing the page.")
                 print(f"Map error: {str(e)}")
