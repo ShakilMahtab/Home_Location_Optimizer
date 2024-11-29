@@ -37,7 +37,7 @@ st.sidebar.header("Search Parameters")
 # Location input
 location_search = st.sidebar.text_input(
     "Search Location",
-    "New York, NY"
+    "Perth"
 )
 
 # Search radius
