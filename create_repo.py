@@ -8,7 +8,7 @@ def create_github_repo():
     }
 
     data = {
-        'name': 'location-optimizer',
+        'name': 'smart-location-optimizer',
         'description': 'A location optimization system for housing and rental search that ranks potential locations based on proximity to key amenities.',
         'private': False,
         'has_issues': True,
