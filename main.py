@@ -108,8 +108,7 @@ with col1:
                 score_info = scorer.score_location(loc, amenities)
                 location_scores.append((loc, score_info))
             
-            # Debug logging for total valid locations
-            st.debug(f"Total valid locations found: {len(location_scores)}")
+            
             
             # Sort locations by total score
             location_scores.sort(key=lambda x: (-x[1]['total_score'], x[1]['combined_distance']))
