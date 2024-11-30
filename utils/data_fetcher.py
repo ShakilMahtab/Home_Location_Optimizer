@@ -6,6 +6,7 @@ from geopy.distance import geodesic
 class OSMDataFetcher:
     def __init__(self):
         self.base_url = "https://overpass-api.de/api/interpreter"
+        self.transport_types = ['bus_station', 'train_station', 'subway_station', 'tram_stop']
         
     def create_query(self, lat: float, lon: float, radius: int, amenity: str) -> str:
         """Create Overpass API query for amenities"""
@@ -64,6 +65,12 @@ class OSMDataFetcher:
                 relation["amenity"="school"](around:{radius},{lat},{lon});
                 way["building"="school"](around:{radius},{lat},{lon});
                 relation["building"="school"](around:{radius},{lat},{lon});
+                
+                // Additional educational facilities
+                way["amenity"="kindergarten"](around:{radius},{lat},{lon});
+                relation["amenity"="kindergarten"](around:{radius},{lat},{lon});
+                way["amenity"="college"](around:{radius},{lat},{lon});
+                relation["amenity"="college"](around:{radius},{lat},{lon});
             );
             out center;
             """
@@ -88,7 +95,7 @@ class OSMDataFetcher:
                 out center;
                 '''
             else:
-                if amenity in transport_types:
+                if amenity in self.transport_types:
                     return f'''
                     [out:json];
                     (
@@ -122,11 +129,9 @@ class OSMDataFetcher:
             'school': []
         }
         
-        # Fetch various public transport stations
-        transport_types = ['bus_station', 'train_station', 'subway_station', 'tram_stop']
+        # Fetch transport locations
         transport_locations = []
-        
-        for transport_type in transport_types:
+        for transport_type in self.transport_types:
             query = self.create_query(lat, lon, radius, transport_type)
             try:
                 response = requests.post(self.base_url, data=query)
@@ -137,8 +142,8 @@ class OSMDataFetcher:
                             transport_locations.append((element['lat'], element['lon'], transport_type))
                         elif 'center' in element:
                             transport_locations.append((element['center']['lat'], 
-                                                     element['center']['lon'], 
-                                                     transport_type))
+                                                   element['center']['lon'], 
+                                                   transport_type))
                 time.sleep(1)  # Rate limiting
             except Exception as e:
                 print(f"Error fetching {transport_type}: {str(e)}")
@@ -160,8 +165,8 @@ class OSMDataFetcher:
                             amenities[amenity_type].append((element['lat'], element['lon'], amenity_type))
                         elif 'center' in element:
                             amenities[amenity_type].append((element['center']['lat'], 
-                                                         element['center']['lon'],
-                                                         amenity_type))
+                                                       element['center']['lon'],
+                                                       amenity_type))
                 time.sleep(1)  # Rate limiting
             except Exception as e:
                 print(f"Error fetching {amenity_type}: {str(e)}")
