@@ -64,12 +64,13 @@ with col1:
         try:
             location = cached_geocode(location_search)
             if location is None:
-                st.error("Location not found. Please try a different search term.")
+                st.warning("Location not found. Please try a different search term.")
+                st.stop()
         except (GeocoderTimedOut, GeocoderUnavailable) as e:
-            st.error("Unable to connect to geocoding service. Please try again in a few moments.")
+            st.warning("Unable to connect to geocoding service. Please try again in a few moments.")
             st.stop()
         except Exception as e:
-            st.error(f"Error finding location: {str(e)}")
+            st.warning("Location not found. Please try a different search term.")
             st.stop()
         else:
             center_lat, center_lon = location.latitude, location.longitude
