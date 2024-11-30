@@ -7,6 +7,9 @@ class OSMDataFetcher:
     def __init__(self):
         self.base_url = "https://overpass-api.de/api/interpreter"
         self.transport_types = ['bus_station', 'train_station', 'subway_station', 'tram_stop']
+        self._cache = {}
+        self._cache_time = {}
+        self.cache_duration = 300  # Cache duration in seconds
         
     def create_query(self, lat: float, lon: float, radius: int, amenity: str) -> str:
         """Create Overpass API query for amenities"""
@@ -120,7 +123,14 @@ class OSMDataFetcher:
                     """
 
     def fetch_amenities(self, lat: float, lon: float, radius: int = 1000) -> Dict[str, List[Tuple[float, float, str]]]:
-        """Fetch nearby amenities from OpenStreetMap"""
+        """Fetch nearby amenities from OpenStreetMap with caching"""
+        cache_key = f"{lat:.3f}_{lon:.3f}_{radius}"
+        current_time = time.time()
+        
+        # Check cache
+        if cache_key in self._cache and (current_time - self._cache_time.get(cache_key, 0)) < self.cache_duration:
+            return self._cache[cache_key]
+            
         amenities = {
             'transport': [],
             'hospital': [],
@@ -172,4 +182,7 @@ class OSMDataFetcher:
             except Exception as e:
                 print(f"Error fetching {amenity_type}: {str(e)}")
                 
+        # Update cache
+        self._cache[cache_key] = amenities
+        self._cache_time[cache_key] = current_time
         return amenities

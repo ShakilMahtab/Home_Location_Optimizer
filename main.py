@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit_folium import folium_static
 from folium import plugins
-import numpy as np
+import numpy as np 
 from streamlit_folium import st_folium
 from utils.data_fetcher import OSMDataFetcher
 from utils.scoring import LocationScorer
@@ -25,9 +25,9 @@ st.set_page_config(
 )
 
 # Title and description
-st.title("🏠 Location Optimizer")
+st.title("🏠 Home Location Optimizer")
 st.markdown("""
-Find the perfect location based on proximity to important amenities.
+Find the perfect home/rental location based on proximity to important amenities (Hospital,Playground,Water,Supermarket,School).
 Use the sidebar to set your preferences and search for locations.
 """)
 
@@ -77,8 +77,13 @@ with col1:
                 radius=int(radius)
             )
             
-            # Generate potential locations in a grid
-            grid_size = 10
+            # Generate potential locations in a grid with adaptive size
+            max_points = 100  # Maximum number of points to evaluate
+            area = np.pi * (radius/1000)**2  # Area in km²
+            points_per_km = max_points / area if area > 0 else max_points
+            grid_size = int(np.sqrt(points_per_km * area) / 2)
+            grid_size = min(max(5, grid_size), 15)  # Keep grid size between 5 and 15
+            
             lat_step = radius / 111000  # Convert meters to approx. degrees
             lon_step = radius / (111000 * np.cos(np.radians(center_lat)))
             
@@ -87,7 +92,9 @@ with col1:
                 for j in range(-grid_size, grid_size + 1):
                     lat = center_lat + (i * lat_step)
                     lon = center_lon + (j * lon_step)
-                    potential_locations.append((lat, lon))
+                    # Only include points within the radius
+                    if geodesic((center_lat, center_lon), (lat, lon)).meters <= radius:
+                        potential_locations.append((lat, lon))
             
             # Score all locations
             location_scores = []
@@ -107,8 +114,9 @@ with col1:
             for rank, (location, score_info) in enumerate(top_locations, 1):
                 add_ranked_location(m, location, rank, score_info)
             
-            # Display map
-            st_folium(m, width=800)
+            # Add loading spinner and display map
+            with st.spinner('Loading map...'):
+                st_folium(m, width=800)
             
             # Display scores
             with col2:
