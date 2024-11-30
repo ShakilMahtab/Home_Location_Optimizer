@@ -10,21 +10,27 @@ class OSMDataFetcher:
     def create_query(self, lat: float, lon: float, radius: int, amenity: str) -> str:
         """Create Overpass API query for amenities"""
         if amenity == 'playground':
-            return f"""
+            return f'''
             [out:json];
             (
-                // Sports grounds and pitches larger than 100m
-                way["leisure"="pitch"]["way_area">10000](around:{radius},{lat},{lon});
-                relation["leisure"="pitch"]["way_area">10000](around:{radius},{lat},{lon});
-                way["leisure"="sports_centre"]["way_area">10000](around:{radius},{lat},{lon});
-                relation["leisure"="sports_centre"]["way_area">10000](around:{radius},{lat},{lon});
+                // Sports grounds and pitches with smaller minimum area
+                way["leisure"="pitch"]["way_area">1000](around:{radius},{lat},{lon});
+                relation["leisure"="pitch"]["way_area">1000](around:{radius},{lat},{lon});
+                way["leisure"="sports_centre"](around:{radius},{lat},{lon});
+                relation["leisure"="sports_centre"](around:{radius},{lat},{lon});
                 
-                // Parks larger than 100m
-                way["leisure"="park"]["way_area">10000](around:{radius},{lat},{lon});
-                relation["leisure"="park"]["way_area">10000](around:{radius},{lat},{lon});
+                // Playgrounds and recreation areas
+                way["leisure"="playground"](around:{radius},{lat},{lon});
+                node["leisure"="playground"](around:{radius},{lat},{lon});
+                way["leisure"="recreation_ground"](around:{radius},{lat},{lon});
+                
+                // Sports facilities
+                way["leisure"="sports_ground"](around:{radius},{lat},{lon});
+                way["leisure"="stadium"](around:{radius},{lat},{lon});
+                way["leisure"="track"](around:{radius},{lat},{lon});
             );
             out center;
-            """
+            '''
         elif amenity == 'water':
             return f'''
             [out:json];
