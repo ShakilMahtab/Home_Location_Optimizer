@@ -44,8 +44,8 @@ def add_ranked_location(m: folium.Map, location: Tuple[float, float],
         location,
         popup=popup_html,
         icon=folium.DivIcon(
-            html=f'<div style="font-size: 14px; background-color: white; '
-                 f'border: 2px solid red; border-radius: 50%; padding: 2px 8px;">{rank}</div>'
+            html=f'<div style="font-size: 18px; background-color: white; '
+                 f'border: 3px solid red; border-radius: 50%; padding: 4px 12px;">{rank}</div>'
         )
     ).add_to(m)
 
