@@ -84,11 +84,11 @@ with col1:
                 )
             
             # Generate potential locations in a grid with adaptive size
-            max_points = 100  # Maximum number of points to evaluate
+            max_points = 200  # Maximum number of points to evaluate
             area = np.pi * (radius/1000)**2  # Area in km²
             points_per_km = max_points / area if area > 0 else max_points
             grid_size = int(np.sqrt(points_per_km * area) / 2)
-            grid_size = min(max(5, grid_size), 15)  # Keep grid size between 5 and 15
+            grid_size = min(max(10, grid_size), 20)  # Keep grid size between 10 and 20
             
             lat_step = radius / 111000  # Convert meters to approx. degrees
             lon_step = radius / (111000 * np.cos(np.radians(center_lat)))
@@ -99,7 +99,7 @@ with col1:
                     lat = center_lat + (i * lat_step)
                     lon = center_lon + (j * lon_step)
                     # Only include points within the radius
-                    if geodesic((center_lat, center_lon), (lat, lon)).meters <= radius:
+                    if geodesic((center_lat, center_lon), (lat, lon)).meters <= radius * 0.95:  # 95% of radius to ensure edge points
                         potential_locations.append((lat, lon))
             
             # Score all locations
@@ -107,6 +107,9 @@ with col1:
             for loc in potential_locations:
                 score_info = scorer.score_location(loc, amenities)
                 location_scores.append((loc, score_info))
+            
+            # Debug logging for total valid locations
+            st.debug(f"Total valid locations found: {len(location_scores)}")
             
             # Sort locations by total score
             location_scores.sort(key=lambda x: (-x[1]['total_score'], x[1]['combined_distance']))
