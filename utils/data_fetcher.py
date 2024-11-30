@@ -88,15 +88,28 @@ class OSMDataFetcher:
                 out center;
                 '''
             else:
-                return f"""
-                [out:json];
-                (
-                  node["amenity"="{amenity}"](around:{radius},{lat},{lon});
-                  way["amenity"="{amenity}"](around:{radius},{lat},{lon});
-                  relation["amenity"="{amenity}"](around:{radius},{lat},{lon});
-                );
-                out center;
-                """
+                if amenity in transport_types:
+                    return f'''
+                    [out:json];
+                    (
+                        node["amenity"="{amenity}"](around:{radius},{lat},{lon});
+                        way["amenity"="{amenity}"](around:{radius},{lat},{lon});
+                        node["public_transport"="station"](around:{radius},{lat},{lon});
+                        node["public_transport"="stop_position"](around:{radius},{lat},{lon});
+                        way["public_transport"="station"](around:{radius},{lat},{lon});
+                    );
+                    out center;
+                    '''
+                else:
+                    return f"""
+                    [out:json];
+                    (
+                      node["amenity"="{amenity}"](around:{radius},{lat},{lon});
+                      way["amenity"="{amenity}"](around:{radius},{lat},{lon});
+                      relation["amenity"="{amenity}"](around:{radius},{lat},{lon});
+                    );
+                    out center;
+                    """
 
     def fetch_amenities(self, lat: float, lon: float, radius: int = 1000) -> Dict[str, List[Tuple[float, float, str]]]:
         """Fetch nearby amenities from OpenStreetMap"""
@@ -109,8 +122,8 @@ class OSMDataFetcher:
             'school': []
         }
         
-        # Fetch bus and train stations separately but combine them
-        transport_types = ['bus_station', 'train_station']
+        # Fetch various public transport stations
+        transport_types = ['bus_station', 'train_station', 'subway_station', 'tram_stop']
         transport_locations = []
         
         for transport_type in transport_types:
