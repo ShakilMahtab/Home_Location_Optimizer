@@ -1,7 +1,7 @@
 import streamlit as st
-import streamlit as st
 from streamlit_folium import folium_static
 from folium import plugins
+from geopy.distance import geodesic
 import numpy as np 
 from streamlit_folium import st_folium
 from utils.data_fetcher import OSMDataFetcher
@@ -17,6 +17,10 @@ geocoder = Nominatim(
 )
 data_fetcher = OSMDataFetcher()
 scorer = LocationScorer()
+# Cache for geocoding results
+@st.cache_data(ttl=3600)  # Cache for 1 hour
+def cached_geocode(location_search):
+    return geocoder.geocode(location_search, timeout=10)
 
 # Page configuration
 st.set_page_config(
@@ -58,7 +62,7 @@ with col1:
     
     if location_search:
         try:
-            location = geocoder.geocode(location_search, timeout=10)
+            location = cached_geocode(location_search)
             if location is None:
                 st.error("Location not found. Please try a different search term.")
         except (GeocoderTimedOut, GeocoderUnavailable) as e:
@@ -71,12 +75,13 @@ with col1:
             center_lat, center_lon = location.latitude, location.longitude
             st.write(f"📍 Showing results for: {location.address}")
             
-            # Fetch amenities
-            amenities = data_fetcher.fetch_amenities(
-                center_lat, 
-                center_lon, 
-                radius=int(radius)
-            )
+            # Fetch amenities with progress indicator
+            with st.spinner('Fetching nearby amenities...'):
+                amenities = data_fetcher.fetch_amenities(
+                    center_lat, 
+                    center_lon, 
+                    radius=int(radius)
+                )
             
             # Generate potential locations in a grid with adaptive size
             max_points = 100  # Maximum number of points to evaluate
