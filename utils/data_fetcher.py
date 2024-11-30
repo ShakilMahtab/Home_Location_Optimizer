@@ -14,21 +14,22 @@ class OSMDataFetcher:
             return f'''
             [out:json];
             (
-                // Sports grounds and pitches with smaller minimum area
-                way["leisure"="pitch"]["way_area">1000](around:{radius},{lat},{lon});
-                relation["leisure"="pitch"]["way_area">1000](around:{radius},{lat},{lon});
+                // Sports grounds and facilities
+                way["leisure"="sports_ground"](around:{radius},{lat},{lon});
+                way["leisure"="pitch"](around:{radius},{lat},{lon});
                 way["leisure"="sports_centre"](around:{radius},{lat},{lon});
-                relation["leisure"="sports_centre"](around:{radius},{lat},{lon});
-                
-                // Playgrounds and recreation areas
-                way["leisure"="playground"](around:{radius},{lat},{lon});
-                node["leisure"="playground"](around:{radius},{lat},{lon});
+                way["leisure"="stadium"](around:{radius},{lat},{lon});
                 way["leisure"="recreation_ground"](around:{radius},{lat},{lon});
                 
-                // Sports facilities
-                way["leisure"="sports_ground"](around:{radius},{lat},{lon});
-                way["leisure"="stadium"](around:{radius},{lat},{lon});
-                way["leisure"="track"](around:{radius},{lat},{lon});
+                // Sports fields and courts
+                way["sport"](around:{radius},{lat},{lon});
+                way["leisure"="fitness_station"](around:{radius},{lat},{lon});
+                way["leisure"="fitness_centre"](around:{radius},{lat},{lon});
+                
+                // Playing fields and recreation areas
+                way["landuse"="recreation_ground"](around:{radius},{lat},{lon});
+                way["leisure"="park"](around:{radius},{lat},{lon});
+                way["leisure"="playing_field"](around:{radius},{lat},{lon});
             );
             out center;
             '''
