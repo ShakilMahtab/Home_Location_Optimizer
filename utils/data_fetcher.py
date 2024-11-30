@@ -62,15 +62,35 @@ class OSMDataFetcher:
             out center;
             """
         else:
-            return f"""
-            [out:json];
-            (
-              node["amenity"="{amenity}"](around:{radius},{lat},{lon});
-              way["amenity"="{amenity}"](around:{radius},{lat},{lon});
-              relation["amenity"="{amenity}"](around:{radius},{lat},{lon});
-            );
-            out center;
-            """
+            if amenity == 'supermarket':
+                return f'''
+                [out:json];
+                (
+                    // Traditional supermarket tags
+                    node["shop"="supermarket"](around:{radius},{lat},{lon});
+                    way["shop"="supermarket"](around:{radius},{lat},{lon});
+                    relation["shop"="supermarket"](around:{radius},{lat},{lon});
+                    
+                    // Additional grocery store tags
+                    node["shop"="grocery"](around:{radius},{lat},{lon});
+                    way["shop"="grocery"](around:{radius},{lat},{lon});
+                    
+                    // Large format stores
+                    node["shop"="hypermarket"](around:{radius},{lat},{lon});
+                    way["shop"="hypermarket"](around:{radius},{lat},{lon});
+                );
+                out center;
+                '''
+            else:
+                return f"""
+                [out:json];
+                (
+                  node["amenity"="{amenity}"](around:{radius},{lat},{lon});
+                  way["amenity"="{amenity}"](around:{radius},{lat},{lon});
+                  relation["amenity"="{amenity}"](around:{radius},{lat},{lon});
+                );
+                out center;
+                """
 
     def fetch_amenities(self, lat: float, lon: float, radius: int = 1000) -> Dict[str, List[Tuple[float, float, str]]]:
         """Fetch nearby amenities from OpenStreetMap"""
